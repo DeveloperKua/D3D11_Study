@@ -65,6 +65,7 @@ private:
 	
 #pragma region Misc
 	D3D11_VIEWPORT _viewPort = { 0 };
+	float _clearColor[4] = { 0.f,0.f,0.f,0.f };
 #pragma endregion
 
 };

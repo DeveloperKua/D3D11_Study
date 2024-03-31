@@ -30,15 +30,27 @@ void Game::Update()
 
 void Game::Render()
 {
+	RenderBegin();
 
+	//TODO
+
+
+	RenderEnd();
 }
 
 void Game::RenderBegin()
 {
+	//후면 버퍼 Draw
+	_deviceContext->OMSetRenderTargets(1, _renderTargetView.GetAddressOf(), nullptr);
+	_deviceContext->ClearRenderTargetView(_renderTargetView.Get(), _clearColor);
+	_deviceContext->RSSetViewports(1, &_viewPort);
 }
 
 void Game::RenderEnd()
 {
+	//전면 버퍼로 Present
+	HRESULT hr = _swapChain->Present(1, 0);
+	assert(SUCCEEDED(hr));
 }
 
 void Game::CreateDeviceAndSwapChain()
