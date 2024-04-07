@@ -3,12 +3,10 @@
 
 Game::Game()
 {
-
 }
 
 Game::~Game()
 {
-
 }
 
 void Game::Init(HWND hwnd)
@@ -27,12 +25,25 @@ void Game::Init(HWND hwnd)
 	CreateInputLayout();
 	CreatePS();
 
+	CreateRasterizerState();
+	CreateSamplerState();
+	CreateBlendState();
+
 	CreateSRV();
+	CreateConstantBuffer();
 }
 
 void Game::Update()
 {
+	//_transformData.offset.x += 0.003f;
+	//_transformData.offset.y += 0.003f;
 
+	D3D11_MAPPED_SUBRESOURCE subResource;
+	ZeroMemory(&subResource, sizeof(subResource));
+	_deviceContext->Map(_constantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &subResource);
+	::memcpy(subResource.pData, &_transformData, sizeof(_transformData));
+
+	_deviceContext->Unmap(_constantBuffer.Get(), 0);
 }
 
 void Game::Render()
@@ -40,7 +51,6 @@ void Game::Render()
 	RenderBegin();
 
 	{
-
 		uint32 stride = sizeof(Vertex);
 		uint32 offset = 0;
 		//IA
@@ -51,15 +61,19 @@ void Game::Render()
 
 		//VS
 		_deviceContext->VSSetShader(_vertexShader.Get(), nullptr, 0);
+		_deviceContext->VSSetConstantBuffers(0, 1, _constantBuffer.GetAddressOf());
 
 		//RS
+		_deviceContext->RSSetState(_rasterizerState.Get());
 
 		//PS
 		_deviceContext->PSSetShader(_pixelShader.Get(), nullptr, 0);
 		_deviceContext->PSSetShaderResources(0, 1, _shaderResourceView.GetAddressOf());
+		_deviceContext->PSSetSamplers(0, 1, _samplerState.GetAddressOf());
 
 		//OM
 		//_deviceContext->Draw(_vertices.size(), 0);
+		_deviceContext->OMSetBlendState(_blendState.Get(), nullptr, 0XFFFFFFFF);
 		_deviceContext->DrawIndexed(_indices.size(), 0, 0);
 	}
 
@@ -100,8 +114,8 @@ void Game::CreateDeviceAndSwapChain()
 
 		//버퍼 사용 용도
 		desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		
-		//후면 버퍼 수 
+
+		//후면 버퍼 수
 		desc.BufferCount = 1;
 		desc.OutputWindow = _hWnd;
 		desc.Windowed = true;
@@ -144,10 +158,9 @@ void Game::CreateDeviceAndSwapChain()
 		_deviceContext.GetAddressOf()
 #pragma endregion
 	);
-	
+
 	//D3D11CreateDeviceAndSwapChain의 결과(HRESULT)가 성공했는지 확인
 	CHECK(hr);
-
 }
 
 void Game::CreateRenderTargetView()
@@ -162,45 +175,42 @@ void Game::CreateRenderTargetView()
 	//RTV 생성
 	hr = _device->CreateRenderTargetView(backBuffer.Get(), nullptr, _renderTargetView.GetAddressOf());
 	CHECK(hr);
-
 }
 
 void Game::SetViewport()
 {
 	_viewPort.TopLeftX = 0.f;
 	_viewPort.TopLeftY = 0.f;
-	_viewPort.Width =  static_cast<float>(_width);
+	_viewPort.Width = static_cast<float>(_width);
 	_viewPort.Height = static_cast<float>(_height);
 	_viewPort.MinDepth = 0.f;
 	_viewPort.MaxDepth = 1.f;
-
 }
 
 void Game::CreateGeometry()
 {
 	// 1 3
-	// 0 2 
+	// 0 2
 	//
 	//vertexData
 	{
-	_vertices.resize(4);
-	 
-	_vertices[0].position = Vec3(-0.5f, -0.5f, 0.f);
-	//_vertices[0].color = Color(0.f, 0.f, 1.f, 1.f);
-	_vertices[0].uv = Vec2(0.f, 1.f);
+		_vertices.resize(4);
 
-	_vertices[1].position = Vec3(-0.5f, 0.5f, 0.f);
-	_vertices[1].uv = Vec2(0.f, 0.f);
-	//_vertices[1].color = Color(0.f, 0.f, 1.f, 1.f);
+		_vertices[0].position = Vec3(-0.5f, -0.5f, 0.f);
+		//_vertices[0].color = Color(0.f, 0.f, 1.f, 1.f);
+		_vertices[0].uv = Vec2(0.f, 5.f);
 
-	_vertices[2].position = Vec3(0.5f, -0.5f, 0.f);
-	_vertices[2].uv = Vec2(1.f, 1.f);
-	//_vertices[2].color = Color(0.f, 0.f, 1.f, 1.f);
+		_vertices[1].position = Vec3(-0.5f, 0.5f, 0.f);
+		_vertices[1].uv = Vec2(0.f, 0.f);
+		//_vertices[1].color = Color(0.f, 0.f, 1.f, 1.f);
 
-	_vertices[3].position = Vec3(0.5f, 0.5f, 0.f);
-	_vertices[3].uv = Vec2(1.f, 0.f);
-	//_vertices[3].color = Color(0.f, 0.f, 1.f, 1.f);
+		_vertices[2].position = Vec3(0.5f, -0.5f, 0.f);
+		_vertices[2].uv = Vec2(5.f, 5.f);
+		//_vertices[2].color = Color(0.f, 0.f, 1.f, 1.f);
 
+		_vertices[3].position = Vec3(0.5f, 0.5f, 0.f);
+		_vertices[3].uv = Vec2(5.f, 0.f);
+		//_vertices[3].color = Color(0.f, 0.f, 1.f, 1.f);
 	}
 
 	//vertexBuffer
@@ -211,11 +221,11 @@ void Game::CreateGeometry()
 		//https://learn.microsoft.com/ko-kr/windows/win32/api/d3d11/ne-d3d11-d3d11_usage
 		//D3D11_USAGE_DEFAULT	:: GPU에서 읽기 및 쓰기 액세스가 필요한 리소스입니다. 이는 가장 일반적인 사용 선택일 수 있습니다.
 
-		//D3D11_USAGE_IMMUTABLE	:: GPU에서만 읽을 수 있는 리소스입니다. GPU에서 작성할 수 없으며 CPU에서 전혀 액세스할 수 없습니다. 
+		//D3D11_USAGE_IMMUTABLE	:: GPU에서만 읽을 수 있는 리소스입니다. GPU에서 작성할 수 없으며 CPU에서 전혀 액세스할 수 없습니다.
 		//							이 유형의 리소스는 만든 후에 변경할 수 없으므로 만들 때 초기화해야 합니다.
 
-		//D3D11_USAGE_DYNAMIC	:: GPU(읽기 전용)와 CPU(쓰기 전용)에서 액세스할 수 있는 리소스입니다. 
-		//							동적 리소스는 CPU에서 프레임당 한 번 이상 업데이트되는 리소스에 적합합니다. 
+		//D3D11_USAGE_DYNAMIC	:: GPU(읽기 전용)와 CPU(쓰기 전용)에서 액세스할 수 있는 리소스입니다.
+		//							동적 리소스는 CPU에서 프레임당 한 번 이상 업데이트되는 리소스에 적합합니다.
 		//							동적 리소스를 업데이트하려면 Map 메서드를 사용합니다.
 
 		//D3D11_USAGE_STAGING	:: GPU에서 CPU로의 데이터 전송(복사)을 지원하는 리소스입니다.
@@ -254,7 +264,6 @@ void Game::CreateGeometry()
 
 void Game::CreateInputLayout()
 {
-
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -263,7 +272,6 @@ void Game::CreateInputLayout()
 
 	const int32 count = sizeof(layout) / sizeof(D3D11_INPUT_ELEMENT_DESC);
 	_device->CreateInputLayout(layout, count, _vsBlob->GetBufferPointer(), _vsBlob->GetBufferSize(), _inputLayout.GetAddressOf());
-
 }
 
 void Game::CreateVS()
@@ -280,6 +288,61 @@ void Game::CreatePS()
 	CHECK(hr);
 }
 
+void Game::CreateRasterizerState()
+{
+	D3D11_RASTERIZER_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+
+	desc.FillMode = D3D11_FILL_SOLID;
+	desc.CullMode = D3D11_CULL_BACK;
+	desc.FrontCounterClockwise = false;
+
+	HRESULT hr = _device->CreateRasterizerState(&desc, _rasterizerState.GetAddressOf());
+	CHECK(hr);
+}
+
+void Game::CreateSamplerState()
+{
+	D3D11_SAMPLER_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.BorderColor[0] = 1;
+	desc.BorderColor[1] = 0;
+	desc.BorderColor[2] = 0;
+	desc.BorderColor[3] = 1;
+	desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	desc.MaxAnisotropy = 16;
+	desc.MaxLOD = FLT_MAX;
+	desc.MinLOD = FLT_MIN;
+	desc.MipLODBias = 0.0f;
+
+	_device->CreateSamplerState(&desc, _samplerState.GetAddressOf());
+}
+
+void Game::CreateBlendState()
+{
+	D3D11_BLEND_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+
+	desc.AlphaToCoverageEnable = false;
+	desc.IndependentBlendEnable = false;
+
+	desc.RenderTarget[0].BlendEnable = true;
+	desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	_device->CreateBlendState(&desc, _blendState.GetAddressOf());
+
+}
+
 void Game::CreateSRV()
 {
 	DirectX::TexMetadata md;
@@ -289,7 +352,20 @@ void Game::CreateSRV()
 
 	hr = CreateShaderResourceView(_device.Get(), img.GetImages(), img.GetImageCount(), md, _shaderResourceView.GetAddressOf());
 	CHECK(hr);
+}
 
+void Game::CreateConstantBuffer()
+{
+	D3D11_BUFFER_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+
+	desc.Usage = D3D11_USAGE_DYNAMIC; // CPU Write + GPU Read
+	desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	desc.ByteWidth = sizeof(TransformData);
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	HRESULT hr = _device->CreateBuffer(&desc, nullptr, _constantBuffer.GetAddressOf());
+	CHECK(hr);
 }
 
 void Game::LoadShaderFromFile(const wstring& path, const string& name, const string& version, ComPtr<ID3DBlob>& blob)
@@ -307,5 +383,4 @@ void Game::LoadShaderFromFile(const wstring& path, const string& name, const str
 		nullptr);
 
 	CHECK(hr);
-
 }
