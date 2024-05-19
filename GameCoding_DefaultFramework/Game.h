@@ -30,18 +30,15 @@ private:
 private:
 	HWND _hWnd;
 
-	Graphics* _graphics;
+	shared_ptr<Graphics> _graphics;
 
 private:
-	//Geometry
-	vector<Vertex> _vertices;
-	VertexBuffer* _vertexBuffer;
 
-	//Index buffer
-	vector<uint32> _indices;
-	IndexBuffer* _indexBuffer;
+	shared_ptr<Geometry<VertexTextureData>> _geometry;
 
-	InputLayout* _inputLayout;
+	shared_ptr<VertexBuffer> _vertexBuffer;
+	shared_ptr<IndexBuffer> _indexBuffer;
+	shared_ptr<InputLayout> _inputLayout;
 
 	//VS
 	ComPtr<ID3D11VertexShader> _vertexShader = nullptr;
