@@ -15,7 +15,6 @@ public:
 	void* GetIndexData() { return _indices.data(); }
 	const vector< uint32>& GetIndices() { return _indices; }
 
-
 	void AddVertex(const T& vertex) { _vertices.push_back(vertex); }
 	void AddVertices(const vector<T>& vertices) { _vertices.insert(_vertices.end(), vertices.begin(), vertices.end()); }
 	void SetVertices(const vector<T>& vertices) { _vertices = vertices; }

@@ -52,6 +52,9 @@
     <Filter Include="소스 파일\00.Engine\Pipeline\05.OutputMerger">
       <UniqueIdentifier>{dbcfedc8-039c-4456-a474-d164f38f9af9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\00.Engine\GameObject">
+      <UniqueIdentifier>{01d6f094-b30c-419e-b1ff-d92cd2452aa3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -105,6 +108,30 @@
     <ClInclude Include="VertexData.h">
       <Filter>소스 파일\00.Engine\Pipeline\00.Geometry</Filter>
     </ClInclude>
+    <ClInclude Include="ConstantBuffer.h">
+      <Filter>소스 파일\00.Engine\Pipeline\02.VertexShader</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>소스 파일\00.Engine\Pipeline\02.VertexShader</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>소스 파일\00.Engine\Pipeline\04.PixelShader</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterizerState.h">
+      <Filter>소스 파일\00.Engine\Pipeline\03.Rasterizer</Filter>
+    </ClInclude>
+    <ClInclude Include="SamplerState.h">
+      <Filter>소스 파일\00.Engine\Pipeline\04.PixelShader</Filter>
+    </ClInclude>
+    <ClInclude Include="BlendState.h">
+      <Filter>소스 파일\00.Engine\Pipeline\05.OutputMerger</Filter>
+    </ClInclude>
+    <ClInclude Include="Pipeline.h">
+      <Filter>소스 파일\00.Engine\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>소스 파일\00.Engine\GameObject</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GameCoding_DefaultFramework.rc">
@@ -152,6 +179,30 @@
     </ClCompile>
     <ClCompile Include="VertexData.cpp">
       <Filter>소스 파일\00.Engine\Pipeline\00.Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstantBuffer.cpp">
+      <Filter>소스 파일\00.Engine\Pipeline\02.VertexShader</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>소스 파일\00.Engine\Pipeline\02.VertexShader</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>소스 파일\00.Engine\Pipeline\04.PixelShader</Filter>
+    </ClCompile>
+    <ClCompile Include="RasterizerState.cpp">
+      <Filter>소스 파일\00.Engine\Pipeline\03.Rasterizer</Filter>
+    </ClCompile>
+    <ClCompile Include="SamplerState.cpp">
+      <Filter>소스 파일\00.Engine\Pipeline\04.PixelShader</Filter>
+    </ClCompile>
+    <ClCompile Include="BlendState.cpp">
+      <Filter>소스 파일\00.Engine\Pipeline\05.OutputMerger</Filter>
+    </ClCompile>
+    <ClCompile Include="Pipeline.cpp">
+      <Filter>소스 파일\00.Engine\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>소스 파일\00.Engine\GameObject</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
